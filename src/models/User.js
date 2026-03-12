@@ -1,44 +1,50 @@
-import Sequelize, { Model } from "sequelize";
-import bcrypt from "bcryptjs";
+const { DataTypes } = require('sequelize');
+const bcrypt = require('bcryptjs');
+const sequelize = require('../config/database');
 
-class User extends Model {
-  static init(sequelize) {
-    super.init(
-      {
-        name: Sequelize.STRING,
-        email: Sequelize.STRING,
-        password: Sequelize.VIRTUAL, //When it is VIRTUAL it does not exist in the database
-        password_hash: Sequelize.STRING,
-      },
-      {
-        sequelize,
-        timestamps: true, //If it's false do not add the attributes (updatedAt, createdAt).
-        //paranoid: true, //If it's true, it does not allow deleting from the bank, but inserts column deletedAt. Timestamps need be true.
-        //underscored: true, //If it's true, does not add camelcase for automatically generated attributes, so if we define updatedAt it will be created as updated_at.
-        //freezeTableName: false, //If it's false, it will use the table name in the plural. Ex: Users
-        //tableName: 'Users' //Define table name
-      }
-    );
-
-    this.addHook("beforeSave", async (user) => {
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  email: {
+    type: DataTypes.STRING(255),
+    unique: true,
+    allowNull: false,
+    validate: {
+      isEmail: true
+    }
+  },
+  password: {
+    type: DataTypes.STRING(255),
+    allowNull: false
+  },
+  default_currency: {
+    type: DataTypes.STRING(10),
+    allowNull: false,
+    defaultValue: "INR"
+  }
+}, {
+  tableName: "users",
+  timestamps: true,
+  hooks: {
+    beforeCreate: async (user) => {
       if (user.password) {
-        user.password_hash = await bcrypt.hash(user.password, 8);
+        user.password = await bcrypt.hash(user.password, 10);
       }
-    });
-
-    return this;
+    },
+    beforeUpdate: async (user) => {
+      if (user.changed('password')) {
+        user.password = await bcrypt.hash(user.password, 10);
+      }
+    }
   }
+});
 
-  static associate(models) {
-    this.belongsToMany(models.Address, {
-      through: "UserAddress",
-      foreignKey: "userId",
-    });
-  }
+// Instance Method
+User.prototype.validatePassword = async function (inputPassword) {
+  return await bcrypt.compare(inputPassword, this.password);
+};
 
-  checkPassword(password) {
-    return bcrypt.compare(password, this.password_hash);
-  }
-}
-
-export default User;
+module.exports = User;

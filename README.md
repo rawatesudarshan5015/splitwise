@@ -1,85 +1,72 @@
-# express-sequelize-boilerplate
+# Splitwise MVP API
 
-![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB)
-![Sequelize](https://img.shields.io/badge/Sequelize-52B0E7?style=for-the-badge&logo=Sequelize&logoColor=white)
+## Tech Stack
+- Node.js + Express
+- Sequelize ORM
+- MySQL
 
-This is a simple boilerplate for building REST APIs in Node.js using Express. Intended for use with PostgreSQL using Sequelize ORM.
+## Setup & Installation
+Step by step instructions:
+- Clone repo
+- `npm install`
+- Create `.env` file (use the template below)
+- Create MySQL database in your SQL client: `CREATE DATABASE splitwise_db;`
+- `npm run dev`
 
-
-## Getting Started
-
-Clone the repository
-
-```bash
-git clone https://github.com/gadfaria/express-sequelize-boilerplate.git
+### `.env` Template
+```env
+PORT=3000
+NODE_ENV=development
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=splitwise_db
+DB_USER=root
+DB_PASSWORD=your_password
 ```
 
-Enter into the directory
-```bash
-cd express-sequelize-boilerplate/
+## API Endpoints
+
+### Users
+- `POST   /api/users`          - Create user
+- `GET    /api/users/:id`      - Get user
+- `PUT    /api/users/:id`      - Update user
+- `DELETE /api/users/:id`      - Delete user
+
+### Expenses
+- `POST   /api/expenses`               - Create expense
+- `GET    /api/expenses/:id`           - Get expense
+- `PUT    /api/expenses/:id`           - Update expense
+- `DELETE /api/expenses/:id`           - Delete expense
+- `GET    /api/expenses/activity`      - Activity log
+
+### Balances
+- `GET    /api/balances/:userId`       - Get user balances
+
+## Request Body Examples
+
+### Create User (`POST /api/users`)
+```json
+{
+  "email": "sudarshan@gmail.com",
+  "password": "pass123",
+  "default_currency": "INR"
+}
 ```
 
-Install the dependencies
-```bash
-yarn
+### Create Expense (`POST /api/expenses`)
+```json
+{
+  "name": "Dinner",
+  "value": 900,
+  "currency": "INR",
+  "date": "2026-03-11",
+  "userId": 1,
+  "members": [1, 2, 3]
+}
 ```
 
-Set the environment variables
-```bash
-cp .env.example .env
-```
-
-Running the boilerplate:
-```bash
-yarn dev
-```
-
-## Configuration
-
-Variables for the environment
-
-| Option | Description |
-| ------ | ------ |
-| SERVER_PORT | Port the server will run on |
-| NODE_ENV | development or production |
-| SERVER_JWT | true or false |
-| SERVER_JWT_SECRET | JWT secret |
-| SERVER_JWT_TIMEOUT | JWT duration time |
-| DB_DIALECT | "mysql", "postgresql", among others |
-| DB_HOST | Database host |
-| DB_USER | Database username |
-| DB_PASS | Database password |
-| DB_NAME | Database name |
-| AWS_KEYID | Access key ID |
-| AWS_SECRETKEY | User secret key |
-| AWS_BUCKET | Bucket name |
-
-## Commands for sequelize 
-```bash
-# Creates the database
-yarn sequelize db:create 
-
-# Drops the database
-yarn sequelize db:drop 
-
-# Load migrations
-yarn sequelize db:migrate 
-
-# Undo migrations
-yarn sequelize db:migrate:undo:all 
-
-# Load seeders
-yarn sequelize db:seed:all
-```
-
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
-
-
-
-<h5 align="center">
-  ☕ Code and Coffee
-</h5>
+## Assumptions
+- Equal split among all members
+- No auth layer: `userId` is passed in request body/query
+- Balances auto-update on expense create/update/delete
+- All amounts stored in 2 decimal places
